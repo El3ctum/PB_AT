@@ -2,7 +2,7 @@ import { collection, doc, getDocs, setDoc, query, where, getDoc, Timestamp } fro
 import { db } from "../../firebaseConfig";
 import UserModel from "../models/User";
 
-// Create a user document in Firestore
+// Create a user document in FirestoreDB
 const createUser = async (user: UserModel): Promise<UserModel & { id: string }> => {
     const userDocRef = doc(db, "users", user.id);
     

@@ -1,12 +1,12 @@
 import React from "react";
-import { useUser } from "../hooks/useUser";
+import { useAuth } from "../hooks/useAuth";
 
 const Dashboard: React.FC = () => {
-    const { activeUser } = useUser()
+    const { activeUserData } = useAuth()
     return (
         <div>
             <h1>Dashboard</h1>
-            <p>{activeUser?.firstName}</p>
+            <p>{activeUserData?.role}</p>
             <p>Teste</p>
         </div>
     )

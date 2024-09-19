@@ -11,10 +11,18 @@
   },
   "dependencies": {
     "@firebase/firestore": "^4.7.1",
+    "@headlessui/react": "^2.1.8",
+    "@heroicons/react": "^2.1.5",
+    "@tailwindcss/forms": "^0.5.9",
+    "@tailwindcss/typography": "^0.5.15",
+    "@types/react-bootstrap": "^0.32.37",
     "firebase": "^10.13.1",
     "react": "^18.3.1",
+    "react-bootstrap": "^2.10.4",
     "react-dom": "^18.3.1",
+    "react-hook-form": "^7.53.0",
     "react-router-dom": "^6.26.1",
+    "react-table": "^7.8.0",
     "uuid": "^10.0.0"
   },
   "devDependencies": {
@@ -22,6 +30,7 @@
     "@types/react": "^18.3.3",
     "@types/react-dom": "^18.3.0",
     "@types/react-router-dom": "^5.3.3",
+    "@types/react-table": "^7.7.20",
     "@types/uuid": "^10.0.0",
     "@vitejs/plugin-react-swc": "^3.7.0",
     "autoprefixer": "^10.4.20",

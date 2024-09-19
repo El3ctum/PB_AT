@@ -1,88 +1,80 @@
 import React, { useState } from 'react';
+import { useForm, SubmitHandler } from 'react-hook-form';
 import { useAuth } from '../hooks/useAuth';
 import { useNavigate } from 'react-router-dom';
 
+interface SignupFormInputs {
+    firstName: string;
+    lastName: string;
+    email: string;
+    password: string;
+}
+
 const SignupForm: React.FC = () => {
     const { signup } = useAuth();
-    const [email, setEmail] = useState('');
-    const [password, setPassword] = useState('');
-    const [firstName, setFirstName] = useState('');
-    const [lastName, setLastName] = useState('');
-    const navigate = useNavigate()
+    const navigate = useNavigate();
+    
+    const { register, handleSubmit, formState: { errors } } = useForm<SignupFormInputs>();
+    const [signupError, setSignupError] = useState<string | null>(null);
 
-    const handleSubmit = (e: React.FormEvent) => {
-        e.preventDefault();
-
-        signup(email, password, firstName, lastName)
-            // Aqui estou recebendo uma promisse `userCredential` 
-            // se precisar, por exemplo, para obter o usuário:
-            // const user = userCredential.user;
-            // Que futuramente posso setar no UserContext();
+    const onSubmit: SubmitHandler<SignupFormInputs> = (data) => {
+        signup(data.email, data.password, data.firstName, data.lastName)
             .then(() => {
                 navigate("/app");
-                console.log("Login successful, navigating to /app");
+                console.log("Signup successful, navigating to /app");
             })
             .catch((error) => {
-                console.error('Login Failed in AuthForm:', error);
+                console.error('Signup Failed:', error);
+                setSignupError("Falha ao criar a conta. Tente novamente.");
             });
     };
 
     return (
-        <form onSubmit={handleSubmit}>
+        <form onSubmit={handleSubmit(onSubmit)}>
             <div className="flex space-x-4 mb-4">
                 <input
                     type="text"
                     placeholder="First name"
-                    onChange={(e) => setFirstName(e.target.value)}
-                    className="bg-gray-700 text-white p-3 rounded w-full"
+                    {...register('firstName', { required: "O primeiro nome é obrigatório" })}
+                    className="bg-dark-gray text-orange-400 p-3 rounded w-full"
                 />
+                {errors.firstName && <p className="text-red-500 text-sm">{errors.firstName.message}</p>}
+
                 <input
                     type="text"
                     placeholder="Last name"
-                    onChange={(e) => setLastName(e.target.value)}
-                    className="bg-gray-700 text-white p-3 rounded w-full"
+                    {...register('lastName', { required: "O sobrenome é obrigatório" })}
+                    className="bg-dark-gray text-orange-400 p-3 rounded w-full"
                 />
+                {errors.lastName && <p className="text-red-500 text-sm">{errors.lastName.message}</p>}
             </div>
             <div className="mb-4">
                 <input
                     type="email"
                     placeholder="Email"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    className="bg-gray-700 text-white p-3 rounded w-full"
+                    {...register('email', { required: "Email é obrigatório", pattern: { value: /^\S+@\S+$/i, message: "Formato de email inválido" } })}
+                    className="bg-dark-gray text-orange-400 p-3 rounded w-full"
                 />
+                {errors.email && <p className="text-red-500 text-sm">{errors.email.message}</p>}
             </div>
             <div className="mb-4">
                 <input
                     type="password"
                     placeholder="Enter your password"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    className="bg-gray-700 text-white p-3 rounded w-full"
+                    {...register('password', { required: "Senha é obrigatória", minLength: { value: 6, message: "A senha precisa ter pelo menos 6 caracteres" } })}
+                    className="bg-dark-gray text-orange-400 p-3 rounded w-full"
                 />
+                {errors.password && <p className="text-red-500 text-sm">{errors.password.message}</p>}
             </div>
-            {/* <div className="mb-4 flex items-center">
-                <input type="checkbox" className="bg-gray-700 text-white p-3 rounded mr-2" />
-                <span className="text-gray-400">I agree to the <a href="#" className="text-blue-500">Terms & Conditions</a></span>
-            </div> */}
+
+            {signupError && <p className="text-red-500 text-sm">{signupError}</p>}
+
             <button
                 type="submit"
-                className="bg-purple-600 text-white py-3 px-6 rounded w-full"
+                className="bg-orange-500 text-dark-gray py-3 px-6 rounded w-full hover:bg-orange-400"
             >
                 Create account
             </button>
-
-            {/*Layout para futuramente implementar login via plataformas terceiras*/}
-            {/* <div className="flex items-center justify-between mt-6">
-                <div className="border-t w-full"></div>
-                <span className="px-4 text-gray-400">Or register with</span>
-                <div className="border-t w-full"></div>
-            </div>
-
-            <div className="flex justify-between mt-4">
-                <button className="bg-gray-700 text-white py-3 px-6 rounded w-full mr-2">Google</button>
-                <button className="bg-gray-700 text-white py-3 px-6 rounded w-full ml-2">Apple</button>
-            </div> */}
         </form>
     );
 };
