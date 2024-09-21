@@ -4,9 +4,9 @@ import { useAuth } from '../hooks/useAuth';
 
 
 const PrivateRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-    const { user } = useAuth(); // Verifica se o usuário está autenticado
+    const { user, activeUserData } = useAuth();
 
-    return user ? (
+    return user && activeUserData?.status === 'active' ? (
         <>{children}</>
     ) : (
         <Navigate to="/login" />

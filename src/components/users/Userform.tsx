@@ -1,26 +1,28 @@
 import React, { useEffect, useState } from 'react';
 import { useForm, SubmitHandler } from 'react-hook-form';
-import { createUser } from '../../services/userService'; // Your service for storing user data in Firestore
-import { apiKey } from '../../../firebaseConfig'; // Firebase auth configuration
-import UserModel from '../../models/User'; // Your User model
+import { createUser, updateUser } from '../../services/userService'; // Make sure updateUser is implemented
+import { apiKey } from '../../../firebaseConfig';
+import UserModel from '../../models/User';
 import { Timestamp } from '@firebase/firestore';
 import { useAuth } from '../../hooks/useAuth';
+import { useNavigate } from 'react-router-dom';
 
 interface UserFormInputs {
     firstName: string;
     lastName: string;
     email: string;
-    password: string;
+    password?: string;
     role: 'admin' | 'collaborator';
     status: 'active' | 'inactive';
 }
 
 const UserForm: React.FC = () => {
-    const { register, handleSubmit, reset, formState: { errors } } = useForm<UserFormInputs>();
+    const { register, handleSubmit, reset, formState: { errors }, clearErrors } = useForm<UserFormInputs>();
     const [registerError, setRegisterError] = useState<string | null>(null);
-    const { activeUserEdit, setActiveUserEdit } = useAuth();
+    const { activeUserEdit } = useAuth();
+    const navigate = useNavigate();
 
-    // Reset the form when activeUserEdit changes
+    // Reset form when activeUserEdit changes or when component is mounted
     useEffect(() => {
         if (activeUserEdit != null) {
             reset({
@@ -29,7 +31,7 @@ const UserForm: React.FC = () => {
                 email: activeUserEdit.email,
                 role: activeUserEdit.role,
                 status: activeUserEdit.status,
-            });
+            }, { keepErrors: false });  // Clear errors on reset
         } else {
             reset({
                 firstName: '',
@@ -37,14 +39,16 @@ const UserForm: React.FC = () => {
                 email: '',
                 role: 'collaborator',
                 status: 'active',
-            });
+            }, { keepErrors: false });
         }
-    }, [activeUserEdit, reset]);
+    }, [activeUserEdit, reset, clearErrors]);
+
 
     const onSubmit: SubmitHandler<UserFormInputs> = async (data) => {
         try {
             if (!activeUserEdit) {
-                // Create the user with Firebase REST API
+
+                // Create new user
                 const response = await fetch(`https://identitytoolkit.googleapis.com/v1/accounts:signUp?key=${apiKey}`, {
                     method: 'POST',
                     body: JSON.stringify({
@@ -63,7 +67,7 @@ const UserForm: React.FC = () => {
 
                 const result = await response.json();
 
-                const userDoc: UserModel = {
+                const newUserDoc: UserModel = {
                     id: result.localId,
                     email: data.email,
                     firstName: data.firstName,
@@ -73,14 +77,33 @@ const UserForm: React.FC = () => {
                     createdAt: Timestamp.now(),
                 };
 
-                await createUser(userDoc);
+                await createUser(newUserDoc);
                 console.log("User created successfully!");
+
             } else {
-                console.log("Editing user:", activeUserEdit);
+                const updatedUserDoc: UserModel = {
+                    ...activeUserEdit,
+                    firstName: data.firstName,
+                    lastName: data.lastName,
+                    role: data.role,
+                    status: data.status,
+                };
+
+                await updateUser(updatedUserDoc);
+                console.log("User updated successfully!");
             }
+
+            reset({
+                firstName: '',
+                lastName: '',
+                email: '',
+                role: 'collaborator',
+                status: 'active',
+            });
+            navigate("/app/admin");
         } catch (error) {
-            console.error('Error creating user:', error);
-            setRegisterError("Failed to create the account. Please try again.");
+            console.error('Error processing user:', error);
+            setRegisterError("Failed to process the account. Please try again.");
         }
     };
 

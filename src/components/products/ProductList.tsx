@@ -1,29 +1,71 @@
-import React, { useEffect, useState } from 'react';
-import { getProducts } from '../services/productService';
+import React, { useState } from 'react';
+import { Table, Pagination, Button } from 'react-bootstrap';
+import ProductModel from '../../models/Product';
 
-const ProductList: React.FC = () => {
-    const [products, setProducts] = useState<any[]>([]);
+interface ProductListProps {
+    products: ProductModel[];
+    removeProduct: (id: string) => Promise<void>;
+}
 
-    useEffect(() => {
-        const fetchProducts = async () => {
-            const productsList = await getProducts();
-            setProducts(productsList);
-        };
+const ProductList: React.FC<ProductListProps> = ({ products, removeProduct }) => {
+    const [currentPage, setCurrentPage] = useState(1);
+    const [productsPerPage] = useState(5); // Número de produtos por página
 
-        fetchProducts();
-    }, []);
+    const idxLastProduct = currentPage * productsPerPage;
+    const idxFirstProduct = idxLastProduct - productsPerPage;
+    const currentProducts = products.slice(idxFirstProduct, idxLastProduct);
+
+    const totalPages = Math.ceil(products.length / productsPerPage);
+
+    const handlePageChange = (page: number) => {
+        setCurrentPage(page);
+    };
 
     return (
-        <div>
-            <h1>Product List</h1>
-            <ul>
-                {products.map(product => (
-                    <li key={product.id}>
-                        {product.name} - ${product.price}
-                    </li>
+        <>
+            <Table striped bordered hover>
+                <thead>
+                    <tr className='text-center'>
+                        <th>Nome</th>
+                        <th>Descrição</th>
+                        <th>Categoria</th>
+                        <th>Ações</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {currentProducts.map((product) => (
+                        <tr key={product.id}>
+                            <td>{product.name}</td>
+                            <td>{product.description}</td>
+                            <td>{product.category}</td>
+                            <td className='flex gap-4 align-middle justify-center'>
+                                <Button variant="danger" onClick={() => removeProduct(product.id)}>
+                                    Excluir
+                                </Button>
+                            </td>
+                        </tr>
+                    ))}
+                </tbody>
+            </Table>
+
+            <Pagination>
+                <Pagination.First onClick={() => handlePageChange(1)} disabled={currentPage === 1} />
+                <Pagination.Prev onClick={() => handlePageChange(currentPage - 1)} disabled={currentPage === 1} />
+
+                {[...Array(totalPages)].map((_, idx) => (
+                    <Pagination.Item
+                        key={idx + 1}
+                        active={idx + 1 === currentPage}
+                        onClick={() => handlePageChange(idx + 1)}
+                    >
+                        {idx + 1}
+                    </Pagination.Item>
                 ))}
-            </ul>
-        </div>
+
+                <Pagination.Next onClick={() => handlePageChange(currentPage + 1)} disabled={currentPage === totalPages} />
+                <Pagination.Last onClick={() => handlePageChange(totalPages)} disabled={currentPage === totalPages} />
+            </Pagination>
+        </>
     );
 };
 

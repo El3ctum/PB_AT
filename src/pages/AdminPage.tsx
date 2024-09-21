@@ -1,7 +1,6 @@
 import React from "react";
 import RegistrationCard from "../components/RegistrationCard";
 import { Outlet } from "react-router-dom";
-import UserList from "../components/users/UserList";
 
 const AdminPage: React.FC = () => {
     return (
@@ -11,10 +10,6 @@ const AdminPage: React.FC = () => {
                     <RegistrationCard title="User" description="Register a new User" route="userForm" />
                     <RegistrationCard title="Product" description="Register a new Product" route="productForm" />
                     <RegistrationCard title="Supplier" description="Register a new Supplier" route="supplierForm" />
-                    <RegistrationCard title="Supplier" description="Register a new Supplier" route="supplierForm" />
-                </div>
-                <div className="mb-6">
-                    <UserList />
                 </div>
                 <div>
                     <Outlet />

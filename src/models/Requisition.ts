@@ -1,11 +1,12 @@
-import { Timestamp, DocumentReference } from "firebase/firestore";
+import { Timestamp } from "firebase/firestore";
 
 interface RequisitionModel {
-    createdAt: Timestamp;
-    productId: DocumentReference;
+    id: string;
+    userId: string;
+    productId: string;
     status: 'open' | 'closed' | 'in progress';
     updatedAt: Timestamp;
-    userId: DocumentReference;
+    createdAt: Timestamp;
 }
 
 export default RequisitionModel;

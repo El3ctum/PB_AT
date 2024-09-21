@@ -2,7 +2,7 @@ import { Link } from "react-router-dom";
 import { useAuth } from "../hooks/useAuth";
 
 const SidebarMenu = () => {
-    const { logout } = useAuth();
+    const { logout, activeUserData } = useAuth();
 
     const handleLogout = (e: React.MouseEvent<HTMLAnchorElement, MouseEvent>) => {
         e.preventDefault();
@@ -16,41 +16,36 @@ const SidebarMenu = () => {
             <nav>
                 <ul className="space-y-4">
                     <li>
-                        <Link 
-                            className="text-white hover:text-gray-300 focus:text-gray-400" 
-                            to="quotations" 
-                        >
-                            Quotations
-                        </Link>
-                    </li>
-                    <li>
-                        <Link 
-                            className="text-white hover:text-gray-300 focus:text-gray-400" 
-                            to="requisitions" 
+                        <Link
+                            className="text-white hover:text-gray-300 focus:text-gray-400"
+                            to="requisitions"
                         >
                             Requisitions
                         </Link>
                     </li>
+                    {activeUserData?.role === "admin" &&
+                        <>
+                            <li>
+                                <Link
+                                    className="text-white hover:text-gray-300 focus:text-gray-400"
+                                    to="dashboard"
+                                >
+                                    Dashboard
+                                </Link>
+                            </li>
+                            <li>
+                                <Link
+                                    className="text-white hover:text-gray-300 focus:text-gray-400"
+                                    to="admin"
+                                >
+                                    Admin
+                                </Link>
+                            </li>
+                        </>}
                     <li>
-                        <Link 
-                            className="text-white hover:text-gray-300 focus:text-gray-400" 
-                            to="dashboard" 
-                        >
-                            Dashboard
-                        </Link>
-                    </li>
-                    <li>
-                        <Link 
-                            className="text-white hover:text-gray-300 focus:text-gray-400" 
-                            to="admin" 
-                        >
-                            Admin
-                        </Link>
-                    </li>
-                    <li>
-                        <Link 
-                            className="text-white hover:text-gray-300 focus:text-gray-400" 
-                            to="/" 
+                        <Link
+                            className="text-white hover:text-gray-300 focus:text-gray-400"
+                            to="/"
                             onClick={handleLogout}
                         >
                             Logout

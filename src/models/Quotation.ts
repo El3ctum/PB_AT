@@ -1,11 +1,12 @@
-import { Timestamp, DocumentReference } from "firebase/firestore";
+import { Timestamp } from "firebase/firestore";
 
 interface QuotationModel {
-    createdAt: Timestamp;
-    description: string;
-    requisitionId: DocumentReference;
-    supplierId: DocumentReference;
+    id: string;
+    requisitionId: string;
+    supplierId: string;
     value: number;
+    description: string;
+    createdAt: Timestamp;
 }
 
 export default QuotationModel;

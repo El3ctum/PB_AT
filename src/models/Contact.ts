@@ -1,11 +1,11 @@
 import { Timestamp } from "firebase/firestore";
 
-interface SupplierModel {
+interface ContactModel {
     id: string;
     name: string;
-    address: string;
-    zipCode: string;
+    email: string;
+    phone: string;
     createdAt: Timestamp;
 }
 
-export default SupplierModel;
+export default ContactModel;

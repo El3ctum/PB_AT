@@ -1,48 +1,70 @@
 import React, { useEffect, useState } from 'react';
-import { Table, Pagination } from 'react-bootstrap';
-import { getUsers } from '../../services/userService';
+import { Table, Pagination, Button } from 'react-bootstrap';
+import { getUsers, setUserState, updateUser } from '../../services/userService';
 import UserModel from '../../models/User';
 import { useAuth } from '../../hooks/useAuth';
 
 const UserList: React.FC = () => {
     const [users, setUsers] = useState<UserModel[]>([]);
-    const { activeUserEdit, setActiveUserEdit } = useAuth();
+    const { activeUserEdit, setActiveUserEdit, user } = useAuth();
 
     const [currentPage, setCurrentPage] = useState(1);
+    const [loading, setLoading] = useState(false);
     const usersPerPage = 5;
 
-    useEffect(() => {
-        const fetchUsers = async () => {
-            const usersList = await getUsers();
-            setUsers(usersList);
-        };
+    const fetchUsers = async () => {
+        setLoading(true);
+        const usersList = await getUsers();
+        setUsers(usersList);
+        setLoading(false);
+    };
 
+    useEffect(() => {
         fetchUsers();
     }, []);
 
     const handleEdit = (user: UserModel) => {
-        if (activeUserEdit) {
+        if (activeUserEdit && activeUserEdit.id === user.id) {
             setActiveUserEdit(null);
             return;
         }
         setActiveUserEdit(user);
     };
 
-    // useEffect(() => {
-    //     if (activeUserEdit) {
-    //         console.log('Active User Edit:', activeUserEdit);
-    //     }
-    // }, [activeUserEdit]);
+    const handleUpdate = async (user: UserModel) => {
+        const updatedUser = {
+            ...user,
+            role: user.role === 'admin' ? 'collaborator' : 'admin' as "admin" | "collaborator",
+        };
+
+        try {
+            await updateUser(updatedUser);
+            fetchUsers();
+        } catch (error) {
+            console.error('Error updating user:', error);
+        }
+    };
+
+    const handleInactivation = async (user: UserModel) => {
+        try {
+            const userStatus = user.status === "active" ? "inactive" : "active"
+            await setUserState(user.id, userStatus);
+            console.log(`User with id ${user.id} successfully inactivated.`);
+            fetchUsers();
+        } catch (error) {
+            console.error(`Error changing user status with id ${user.id}:`, error);
+        }
+    };
 
     const idxLastUser = currentPage * usersPerPage;
     const idxFirstUser = idxLastUser - usersPerPage;
-    const currentUsers = users.slice(idxFirstUser, idxLastUser)
+    const currentUsers = users.slice(idxFirstUser, idxLastUser);
 
     const handlePageChange = (page: number) => {
         setCurrentPage(page);
     };
 
-    const totalPages = Math.ceil(users.length / usersPerPage)
+    const totalPages = Math.ceil(users.length / usersPerPage);
 
     return (
         <>
@@ -58,38 +80,41 @@ const UserList: React.FC = () => {
                     </tr>
                 </thead>
                 <tbody>
-                    {currentUsers.map(user => (
-                        <tr key={user.id}>
-                            <td>{user.firstName}</td>
-                            <td>{user.lastName}</td>
-                            <td>{user.email}</td>
-                            <td>{user.role}</td>
-                            <td>{user.status}</td>
-                            <td className='flex gap-4 align-middle justify-center'>
-                                <button onClick={() => handleEdit(user)}>Edit</button>
-                                <button>Delete</button>
-                            </td>
+                    {loading ? (
+                        <tr>
+                            <td colSpan={6} className="text-center">Loading...</td>
                         </tr>
-                    ))}
+                    ) : currentUsers.length > 0 ? (
+                        currentUsers.map(currentUser => (
+                            user?.uid !== currentUser.id &&
+                            <tr key={currentUser.id} className="text-center">
+                                <td>{currentUser.firstName}</td>
+                                <td>{currentUser.lastName}</td>
+                                <td>{currentUser.email}</td>
+                                <td>{currentUser.role}</td>
+                                <td>{currentUser.status}</td>
+                                <td>
+                                    <Button onClick={() => handleEdit(currentUser)}>
+                                        {activeUserEdit && activeUserEdit.id === currentUser.id ? "Cancel" : "Edit"}
+                                    </Button>
+                                    <Button onClick={() => handleUpdate(currentUser)}>Change Role</Button>
+                                    <Button onClick={() => handleInactivation(currentUser)}>Change Status</Button>
+                                </td>
+                            </tr>
+                        ))
+                    ) : (
+                        <tr>
+                            <td colSpan={6} className="text-center">No users found</td>
+                        </tr>
+                    )}
                 </tbody>
             </Table>
-
             <Pagination>
-                <Pagination.First onClick={() => handlePageChange(1)} disabled={currentPage === 1} />
-                <Pagination.Prev onClick={() => handlePageChange(currentPage - 1)} disabled={currentPage === 1} />
-
-                {[...Array(totalPages)].map((_, idx) => (
-                    <Pagination.Item
-                        key={idx + 1}
-                        active={idx + 1 === currentPage}
-                        onClick={() => handlePageChange(idx + 1)}
-                    >
-                        {idx + 1}
+                {[...Array(totalPages).keys()].map((page) => (
+                    <Pagination.Item key={page + 1} active={page + 1 === currentPage} onClick={() => handlePageChange(page + 1)}>
+                        {page + 1}
                     </Pagination.Item>
                 ))}
-
-                <Pagination.Next onClick={() => handlePageChange(currentPage + 1)} disabled={currentPage === totalPages} />
-                <Pagination.Last onClick={() => handlePageChange(totalPages)} disabled={currentPage === totalPages} />
             </Pagination>
         </>
     );
